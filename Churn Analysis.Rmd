@@ -14,10 +14,35 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Markdown for Customer Churn Analysis 
 
 
-#### Loading Data
+#### Loading Data and Packages
 ```{r}
 library(readr)
-WA_Fn_UseC_Telco_Customer_Churn <- read_csv("~/Downloads/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+WA_Fn_UseC_Telco_Customer_Churn <- read_csv("~/Customer-Churn-Analysis/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 View(WA_Fn_UseC_Telco_Customer_Churn)
+
+#loading packages
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+
+#creating a dataframe object called telco
+telco <- data.frame(WA_Fn_UseC_Telco_Customer_Churn)
+glimpse(telco)
+```
+
+
+#### Exploring Data
+
+``` {r}
+posn.jd <- position_jitterdodge(0.5, 0, 0.6)
+
+ggplot(telco,aes(x=PaymentMethod,col=contract)) +
+geom_dotplot(position=posn.jd, aplha=0.6)
+
+payment_plot <- ggplot(telco,aes(x=PaymentMethod,fill=Churn, order=Churn))+
+  geom_bar(position="Fill")+
+  facet_grid(.~ Contract)
+
+payment_plot
 
 ```
