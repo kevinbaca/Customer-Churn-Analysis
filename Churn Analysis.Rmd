@@ -3,6 +3,8 @@ title: "Churn Analysis"
 author: "Kevin Baca"
 date: "4/15/2019"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -10,3 +12,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Markdown for Customer Churn Analysis 
+
+
+#### Loading Data
+```{r}
+library(readr)
+WA_Fn_UseC_Telco_Customer_Churn <- read_csv("~/Downloads/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+View(WA_Fn_UseC_Telco_Customer_Churn)
+
+```
