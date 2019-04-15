@@ -1,0 +1,12 @@
+---
+title: "Churn Analysis"
+author: "Kevin Baca"
+date: "4/15/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Markdown for Customer Churn Analysis 
