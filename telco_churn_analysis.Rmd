@@ -1,0 +1,47 @@
+---
+title: "Telco Churn Analysis"
+author: "Kevin Baca"
+date: "4/15/2019"
+output: 
+  prettydoc::html_pretty:
+    theme: leonids
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
+```
+
+
+#### Loading Data and Packages
+```{r message=FALSE, warning=FALSE}
+library(readr)
+WA_Fn_UseC_Telco_Customer_Churn <- read_csv("~/Customer-Churn-Analysis/WA_Fn-UseC_-Telco-Customer-Churn.csv")
+
+#loading packages
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+
+#creating a dataframe object called telco
+telco <- data.frame(WA_Fn_UseC_Telco_Customer_Churn)
+glimpse(telco)
+```
+
+
+#### Exploring Data
+``` {r}
+posn.jd <- position_jitterdodge(0.5, 0, 0.6)
+
+payment_plot <- ggplot(telco,aes(x=PaymentMethod,fill=Churn, order=Churn))+
+  geom_bar(position="Fill")+
+  facet_grid(.~ Contract)
+
+payment_plot
+
+```
