@@ -39,7 +39,7 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
 
 
 
-##### Proposal 
+##### Proposal
 
 * With Churn representing a binary target variable, customer data related to payment, adoption, and demographics can form explantory features that correlate to churn likelihood. 
 
