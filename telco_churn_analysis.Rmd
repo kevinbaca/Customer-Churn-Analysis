@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 
 ## Churn Analysis for Telco Subscriptions
 Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telco-Customer-Churn data set.  
-
+ 
 
 ### Index
 * [Project Spec](#A1)
