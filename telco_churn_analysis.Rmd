@@ -26,7 +26,8 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
 * [Loading Data and Packages](#A2)
 * [Exploring Data](#A3)
 * [Tidying Data](#A4)
-* [Churn Features](#A5)
+* [Correlation Matrix](#A5)
+* [Fun with Plots](#A6)
 
 ### Project Spec {#A1} 
 
@@ -36,7 +37,6 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
 * For example, MRR Churn is a vital financial metric that calculates the amount of monthly recurring revenue (MRR) lost each month due to customer cancellations. 
 
 * A SaaS businesse's survival depends on recurring revenue from subscription customers, so natrurally, churn reduction is one of the most important KPIs. 
-
 
 
 ##### Proposal
@@ -56,20 +56,105 @@ library(tidyverse)
 library(ggplot2)
 library(Hmisc)
 library(GGally)
+library(corrplot)
 
 #creating a dataframe object called telco
 telco <- data.frame(telco)
-
+glimpse(telco)
 ```
 
 
 #### Exploring Data {#A3} 
-```{r}
-glimpse(telco)
+* Prob Table Gender, Partner, Dependents with Churn
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+prop.table(table(telco$gender))
+prop.table(table(telco$gender, telco$Churn),1)
+
+prop.table(table(telco$Partner))
+prop.table(table(telco$Partner, telco$Churn),1)
+
+prop.table(table(telco$Dependents))
+prop.table(table(telco$Dependents, telco$Churn),1)
+```
+
+* Prob Tables Phone Service with Churn
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+prop.table(table(telco$MultipleLines))
+prop.table(table(telco$MultipleLines, telco$Churn),1)
+
+prop.table(table(telco$PhoneService))
+prop.table(table(telco$PhoneService, telco$Churn),1)
+```
+
+* Prob Tables Internet Service with Churn
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#no internet service variable
+prop.table(table(telco$InternetService))
+prop.table(table(telco$InternetService, telco$Churn),1)
+
+prop.table(table(telco$OnlineSecurity))
+prop.table(table(telco$OnlineSecurity, telco$Churn),1)
+
+prop.table(table(telco$OnlineBackup))
+prop.table(table(telco$OnlineBackup, telco$Churn),1)
+
+prop.table(table(telco$DeviceProtection))
+prop.table(table(telco$DeviceProtection, telco$Churn),1)
+
+prop.table(table(telco$TechSupport))
+prop.table(table(telco$TechSupport, telco$Churn),1)
+
+prop.table(table(telco$StreamingTV))
+prop.table(table(telco$StreamingTV, telco$Churn),1)
+
+prop.table(table(telco$StreamingMovies))
+prop.table(table(telco$StreamingMovies, telco$Churn),1)
+
+
+#the below variables should not be binary
+telco %>% 
+  group_by(InternetService) %>% 
+  tally
 ```
 
 #### Tidying Data {#A4} 
+* Converting Yes/No Variables to 1/0
+* All NAs converted to 0
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# tranforming binaries 
+telco_mutate <- telco %>%
+  mutate(gender = ifelse(gender == "Female",0,1)) %>% 
+  mutate(Partner = ifelse(Partner == "No",0,1)) %>% 
+  mutate(Dependents = ifelse(Dependents == "No",0,1)) %>% 
+  mutate(PhoneService = ifelse(PhoneService == "Yes",1,0)) %>% 
+  mutate(MultipleLines = ifelse(MultipleLines == "Yes",1,0)) %>% 
+  mutate(OnlineSecurity = ifelse(OnlineSecurity == "Yes",1,0)) %>% 
+  mutate(OnlineBackup = ifelse(OnlineBackup == "Yes",1,0)) %>% 
+  mutate(DeviceProtection = ifelse(DeviceProtection == "Yes",1,0)) %>% 
+  mutate(TechSupport = ifelse(TechSupport == "Yes",1,0)) %>% 
+  mutate(StreamingTV = ifelse(StreamingTV == "Yes",1,0)) %>% 
+  mutate(StreamingMovies = ifelse(StreamingMovies == "Yes",1,0)) %>% 
+   mutate(Churn = ifelse(Churn == "Yes",1,0))
+  
+```
+
+
+####  Correlation Matrix {#A5}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+cor_telco <- telco_mutate[, c("SeniorCitizen","tenure","MonthlyCharges","TotalCharges", "gender","Dependents","Partner","PhoneService","MultipleLines","OnlineSecurity","OnlineBackup","DeviceProtection","TechSupport","StreamingTV","StreamingMovies", "Churn")]
+
+source("http://www.sthda.com/upload/rquery_cormat.r")
+
+rquery.cormat(cor_telco, type="full")
+
+```
+
+
+####Fun with Plots {#A6}
+*Plotting Payment Variables
+``` {r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 #Renaming PaymentMethod elements for plot labels.
 telco <- telco %>% 
@@ -78,11 +163,8 @@ telco <- telco %>%
   str_detect(PaymentMethod, "Credit") ~ "Credit Card",
   T ~ PaymentMethod
   ))
-  
-```
 
-####  Churn by Payment Features {#A5}
-``` {r}
+#Plotting payment and contract variables
 posn.jd <- position_jitterdodge(0.5, 0, 0.6)
 
 payment_plot <- ggplot(telco,aes(x=Payment,fill=Churn, order=Churn))+
@@ -90,8 +172,5 @@ payment_plot <- ggplot(telco,aes(x=Payment,fill=Churn, order=Churn))+
   facet_grid(.~ Contract)+ 
   theme(axis.text = element_text(angle = 90, hjust=1))
 
-payment_plot 
+payment_plot
 ```
-
-
-
