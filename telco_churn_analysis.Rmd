@@ -57,10 +57,12 @@ library(ggplot2)
 library(Hmisc)
 library(GGally)
 library(corrplot)
+library(skimr)
 
 #creating a dataframe object called telco
 telco <- data.frame(telco)
 glimpse(telco)
+
 ```
 
 
@@ -90,6 +92,8 @@ prop.table(table(telco$PhoneService, telco$Churn),1)
 * Prob Tables Internet Service with Churn
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #no internet service variable
+# summarize key findings in this section -- one bottom line in each code cell with what I find/significance 
+# before prop.table use summary and glimpse
 prop.table(table(telco$InternetService))
 prop.table(table(telco$InternetService, telco$Churn),1)
 
@@ -123,7 +127,8 @@ telco %>%
 * All NAs converted to 0
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
-# tranforming binaries 
+# tranforming binaries
+# rename/create new column name to denote the `1` variable, so `gender_male`
 telco_mutate <- telco %>%
   mutate(gender = ifelse(gender == "Female",0,1)) %>% 
   mutate(Partner = ifelse(Partner == "No",0,1)) %>% 
