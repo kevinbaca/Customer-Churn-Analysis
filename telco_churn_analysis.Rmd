@@ -2,9 +2,9 @@
 title: "Churn Analysis"
 author: "Kevin Baca"
 date: "4/15/2019"
-output: 
-  prettydoc::html_pretty:
-    theme: leonids
+output:
+  html_document: 
+    theme: cosmo
 editor_options: 
   chunk_output_type: console
 ---
@@ -22,31 +22,28 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
  
 
 ### Index
-* [Project Spec](#A1)
-* [Loading Data and Packages](#A2)
-* [Exploring Data](#A3)
+* [Project Overview](#A1)
+* [Exploring Demographic Data](#A2)
+* [Exploring Asoption Data](#A3)
 * [Tidying Data](#A4)
 * [Correlation Matrix](#A5)
 * [Fun with Plots](#A6)
 
-### Project Spec {#A1} 
+## Project Overview {#A1} 
 
-##### Problem
-* Customer Churn is a metric used by SaaS and subscripton-based businesses to measure the number of customers lost in a given amount of time. 
+### Problem
+* Customer Churn is a metric used by SaaS and subscripton-based businesses to measure the number of customers lost in a given amount of time. For example, MRR Churn is a key financial metric used by SaaS businesses to calculate the amount of monthly recurring revenue (MRR) lost each month due to customer cancellations. As a SaaS business's survival depends on recurring revenue from subscription customers, churn reduction is one of the most important KPIs. 
 
-* For example, MRR Churn is a vital financial metric that calculates the amount of monthly recurring revenue (MRR) lost each month due to customer cancellations. 
+### Proposal
+* With Churn representing a binary target variable, customer data related to payment, product adoption, and demographics will be explored as explantory features to predict churn likelihood. 
 
-* A SaaS businesse's survival depends on recurring revenue from subscription customers, so natrurally, churn reduction is one of the most important KPIs. 
+* Once the features that best correlate to customer churn are identified, a model will be constructed to predict churn based on those featres. 
 
+### Data Overview 
+* The telco dataset consists of 21 columns and 7,043 rows. 
+* The vast majority of the variables are binary, including Churn, which is our target variable. 
 
-##### Proposal
-
-* With Churn representing a binary target variable, customer data related to payment, adoption, and demographics can form explantory features that correlate to churn likelihood. 
-
-* Once the features that best correlate to customer churn are identified, the next step will be to construct a model that will predict churn based on those featres. 
-
-### Loading Data and Packages {#A2} 
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+```{r}
 library(readr)
 telco <- read_csv("~/Customer-Churn-Analysis/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 
@@ -62,69 +59,154 @@ library(skimr)
 #creating a dataframe object called telco
 telco <- data.frame(telco)
 glimpse(telco)
-
 ```
 
 
-#### Exploring Data {#A3} 
-* Prob Table Gender, Partner, Dependents with Churn
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-prop.table(table(telco$gender))
+## Exploring Demographic Data {#A2} 
+* [Partners](#B1)
+* [Gender](#B2)
+* [Senior Citizen](#B3)
+* [Dependents](#B4)
+
+### Cusomers with Partners {#B1} 
+* Non-partnered customers churn at 32% rate
+* partnered customers churn as a 20% rate
+
+```{r}
+#defining the color values so churn appears red
+val = c("#49beb7","#e16262")
+
+#Creating a custom function to 
+plawt <- function(A) {
+  ggplot(telco, aes(x = factor(A), fill = factor(Churn))) +
+  geom_bar(position = "dodge") +
+  scale_y_continuous("Count")+
+  scale_fill_manual("Churn", values = val)
+}
+
+# Plotting Partner Column
+plawt(telco$Partner) + scale_x_discrete("Has Partner")
+prop.table(table(telco$Partner, telco$Churn),1)
+```
+
+
+### Customer Gender {#B2} 
+* Gender proportion is split evenly and neither 
+* Neither gender is partcularly more likely to churn
+
+```{r}
+plawt(telco$gender) + scale_x_discrete("Gender")
 prop.table(table(telco$gender, telco$Churn),1)
 
-prop.table(table(telco$Partner))
-prop.table(table(telco$Partner, telco$Churn),1)
+```
 
-prop.table(table(telco$Dependents))
+### Senior Citizens {#B3} 
+* Senior Citizens are more approximately twice as alikely to churn
+* The proportion of the customer base who are Senior Citizens is 16%
+
+```{r}
+plawt(telco$SeniorCitizen) + scale_x_discrete("Senior Citizen")
+prop.table(table(telco$SeniorCitizen, telco$Churn),1)
+```
+
+### Customers with Dependents {#B4} 
+* Customers with no dependents churn at twice the rate
+
+```{r}
+plawt(telco$Dependents) + scale_x_discrete("Has Dependents")
 prop.table(table(telco$Dependents, telco$Churn),1)
 ```
 
-* Prob Tables Phone Service with Churn
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+## Exploring Adoption Data {#A3} 
+* [Phone Service](#C1)
+* [Multiple Lines](#C2)
+* [Internet Service](#C3)
+* [Online Security](#C4)
+* [Online Backup](#C5)
+* [Device Protection](#C6)
+* [Tech Support](#C7)
+* [Steaming TV](#C8)
+* [Streaming Movies](#C9)
 
-prop.table(table(telco$MultipleLines))
-prop.table(table(telco$MultipleLines, telco$Churn),1)
+### Has Phone Service {#C1} 
+* The churn rate is higher among users without phone service, but overall, the subset of users without a phone is relatively very small
 
-prop.table(table(telco$PhoneService))
+```{r}
+plawt(telco$PhoneService) + scale_x_discrete("Has Phone Service")
 prop.table(table(telco$PhoneService, telco$Churn),1)
 ```
 
-* Prob Tables Internet Service with Churn
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-#no internet service variable
-# summarize key findings in this section -- one bottom line in each code cell with what I find/significance 
-# before prop.table use summary and glimpse
-prop.table(table(telco$InternetService))
-prop.table(table(telco$InternetService, telco$Churn),1)
+###  Has Multiple Lines {#C2} 
+* Users with multiple lines to churn at a higher rate than users without multiple lines
 
-prop.table(table(telco$OnlineSecurity))
-prop.table(table(telco$OnlineSecurity, telco$Churn),1)
-
-prop.table(table(telco$OnlineBackup))
-prop.table(table(telco$OnlineBackup, telco$Churn),1)
-
-prop.table(table(telco$DeviceProtection))
-prop.table(table(telco$DeviceProtection, telco$Churn),1)
-
-prop.table(table(telco$TechSupport))
-prop.table(table(telco$TechSupport, telco$Churn),1)
-
-prop.table(table(telco$StreamingTV))
-prop.table(table(telco$StreamingTV, telco$Churn),1)
-
-prop.table(table(telco$StreamingMovies))
-prop.table(table(telco$StreamingMovies, telco$Churn),1)
-
-
-#the below variables should not be binary
-telco %>% 
-  group_by(InternetService) %>% 
-  tally
+```{r}
+plawt(telco$MultipleLines) + scale_x_discrete("Has Multiple lines")
+prop.table(table(telco$MultipleLines, telco$Churn),1)
 ```
 
+### Internet Service {#C3} 
+* Fiber Optic Subscribers Churn at a ~42% rate compared with 19% for DSL
+
+```{r}
+plawt(telco$InternetService) + scale_x_discrete("Internet Service Type")
+prop.table(table(telco$InternetService, telco$Churn),1)
+```
+
+### Online Security {#C4} 
+* Subsribers without Online Security churn at an ~42% rate compared with users with online security who churn at an ~15% rate. 
+
+```{r} 
+plawt(telco$OnlineSecurity) + scale_x_discrete("Online Security")
+prop.table(table(telco$OnlineSecurity, telco$Churn),1)
+```
+
+### Online Backup {#C5} 
+* Subsribers without Online Backup churn at an ~40% rate compared with users with online security who churn at an ~21% rate. 
+
+```{r} 
+plawt(telco$OnlineBackup) + scale_x_discrete("Online Backup")
+prop.table(table(telco$OnlineBackup, telco$Churn),1)
+```
+
+
+### Device Protection {#C6} 
+* Customers without Device Protection Churn at a 39% Rate compared with a 22% rate for customers with Device Protection
+
+```{r} 
+plawt(telco$DeviceProtection) + scale_x_discrete("Device Protection")
+prop.table(table(telco$DeviceProtection, telco$Churn),1)
+
+```
+
+### Tech Support {#C7} 
+* Customers with Tech Support churned at a 15% rate compared with 42% for customers without Tech Support (Whatever this means)
+
+```{r} 
+plawt(telco$TechSupport) + scale_x_discrete("Tech Support")
+prop.table(table(telco$TechSupport, telco$Churn),1)
+```
+
+### Streaming TV {#C8} 
+* There is not a meaninggul difference in churn rate
+```{r} 
+plawt(telco$StreamingTV) + scale_x_discrete("Streaming TV")
+prop.table(table(telco$StreamingTV, telco$Churn),1)
+
+```
+
+### Streaming Movies {#C9} 
+* There is not a meaninggul difference in churn rate
+```{r} 
+plawt(telco$StreamingMovies) + scale_x_discrete("Streaming Movies")
+prop.table(table(telco$StreamingMovies, telco$Churn),1)
+
+```
+
+
 #### Tidying Data {#A4} 
-* Converting Yes/No Variables to 1/0
+* Converting Yes/No Binary Variables to 1/0
 * All NAs converted to 0
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 # tranforming binaries
@@ -146,19 +228,101 @@ telco_mutate <- telco %>%
 ```
 
 
-####  Correlation Matrix {#A5}
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-cor_telco <- telco_mutate[, c("SeniorCitizen","tenure","MonthlyCharges","TotalCharges", "gender","Dependents","Partner","PhoneService","MultipleLines","OnlineSecurity","OnlineBackup","DeviceProtection","TechSupport","StreamingTV","StreamingMovies", "Churn")]
+####  Correlation Analysis {#A5}
 
-source("http://www.sthda.com/upload/rquery_cormat.r")
+```{r}
+library(tidyverse)
+library(readr)
+telco <- read_csv("~/Downloads/WA_Fn-UseC_-Telco-Customer-Churn.csv")
 
-rquery.cormat(cor_telco, type="full")
 
+# Correlation Analysis ----
+
+data   <- telco
+
+telco1 <- telco %>% 
+    mutate(Churn = ifelse(Churn=="Yes", 1, 0))
+
+feature_expr <- quo(Churn)
+
+get_cor <- function(data, target, use = "pairwise.complete.obs",
+                    fct_reorder = FALSE, fct_rev = FALSE) {
+    
+    feature_expr <- enquo(target)
+    feature_name <- quo_name(feature_expr)
+    
+    data_cor <- data %>%
+        mutate_if(is.character, as.factor) %>%
+        mutate_if(is.factor, as.numeric) %>%
+        cor(use = use) %>%
+        as.tibble() %>%
+        mutate(feature = names(.)) %>%
+        select(feature, !! feature_expr) %>%
+        filter(!(feature == feature_name)) %>%
+        mutate_if(is.character, as_factor)
+    
+    if (fct_reorder) {
+        data_cor <- data_cor %>% 
+            mutate(feature = fct_reorder(feature, !! feature_expr)) %>%
+            arrange(feature)
+    }
+    
+    if (fct_rev) {
+        data_cor <- data_cor %>% 
+            mutate(feature = fct_rev(feature)) %>%
+            arrange(feature)
+    }
+    
+    return(data_cor)
+    
+}
+
+telco1 %>%
+    get_cor(Churn, fct_reorder = T, fct_rev = T)
+
+
+
+
+data         <- telco
+feature_expr <- quo(Churn)
+
+plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE, 
+                     include_lbl = TRUE, lbl_precision = 2, lbl_position = "outward",
+                     size = 2, line_size = 1, vert_size = 1, 
+                     color_pos = "green", 
+                     color_neg = "red") {
+    
+    feature_expr <- enquo(target)
+    feature_name <- quo_name(feature_expr)
+    
+    data_cor <- data %>%
+        get_cor(!! feature_expr, fct_reorder = fct_reorder, fct_rev = fct_rev) %>%
+        mutate(feature_name_text = round(!! feature_expr, lbl_precision)) %>%
+        mutate(Correlation = case_when(
+            (!! feature_expr) >= 0 ~ "Positive",
+            TRUE                   ~ "Negative") %>% as.factor())
+    
+    g <- data_cor %>%
+        ggplot(aes_string(x = feature_name, y = "feature", group = "feature")) +
+        geom_point(aes(color = Correlation), size = size) +
+        geom_segment(aes(xend = 0, yend = feature, color = Correlation), size = line_size) +
+        geom_vline(xintercept = 0, color = "grey", size = vert_size) +
+        expand_limits(x = c(-1, 1)) +
+        scale_color_manual(values = c(color_neg, color_pos)) 
+    
+    if (include_lbl) g <- g + geom_label(aes(label = feature_name_text), hjust = lbl_position)
+    
+    return(g)
+    
+}
+
+telco1 %>%
+    plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
-
 
 ####Fun with Plots {#A6}
 *Plotting Payment Variables
+
 ``` {r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 #Renaming PaymentMethod elements for plot labels.
@@ -170,12 +334,11 @@ telco <- telco %>%
   ))
 
 #Plotting payment and contract variables
-posn.jd <- position_jitterdodge(0.5, 0, 0.6)
-
-payment_plot <- ggplot(telco,aes(x=Payment,fill=Churn, order=Churn))+
+payment_plot <- ggplot(telco,aes(x=Payment,fill=Churn))+
   geom_bar(position="Fill")+
   facet_grid(.~ Contract)+ 
-  theme(axis.text = element_text(angle = 90, hjust=1))
+  theme(axis.text = element_text(angle = 90, hjust=1))+
+  scale_fill_manual(values = val)
 
 payment_plot
 ```
