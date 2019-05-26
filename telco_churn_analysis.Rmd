@@ -4,7 +4,7 @@ author: "Kevin Baca"
 date: "4/15/2019"
 output: 
   prettydoc::html_pretty:
-    theme: tactile
+    theme: HPSTR
 editor_options: 
   chunk_output_type: console
 ---
@@ -17,33 +17,27 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Churn Analysis for Telco Subscriptions
 Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telco-Customer-Churn data set.  
  
 
-#### Index
+## Index
 * [Project Overview](#A1)
 * [Exploring Demographic Data](#A2)
 * [Exploring Adoption Data](#A3)
-* [Tidying Data](#A4)
-* [Correlation Matrix](#A5)
-* [Fun with Plots](#A6)
+* [Exploring Payment Data](#A4)
+* [Tidying Data](#A5)
+* [Correlation Matrix](#A6)
+* [Training Dataset](#A7)
+* [Logistic Regression](#A8)
 
-### Project Overview {#A1} 
 
-#### Problem
-* Customer Churn is a metric used by subscripton-based businesses to measure the number of customers lost in a given amount of time. 
+## Project Overview {#A1} 
 
-* MRR Churn is a widely-used financial metric that calculates the amount of monthly recurring revenue (MRR) lost each month due to customer cancellations. 
-
-* As a subscripton-based business's survival depends on recurring revenue, churn reduction is an essential growth KPIs. 
+#### Problem Statement
+* Customer Churn is a metric used by subscripton-based businesses to measure the number of customers lost in a given amount of time. MRR Churn, in particular, is a widely-used financial metric that calculates the amount of monthly recurring revenue (MRR) lost each month due to customer cancellations. As a subscripton-based business's survival depends on recurring revenue, churn reduction is imperative. 
 
 #### Proposal
-* In order to mitigate churn, it's important to identify which factors correlate to a higher likelihood to churn. 
-
-* With Churn representing a binary target variable, customer data related to payment, product adoption, and demographics will be explored as explantory features to predict churn likelihood. 
-
-* Once the features that best correlate to customer churn are identified, a model will be constructed to predict churn based on those featres. 
+* In order to mitigate churn, it's important to identify which factors correlate to a higher likelihood to churn. With Churn representing a binary target variable, customer data related to payment, product adoption, and demographics will be explored as explantory features to predict churn likelihood. Once the features that best correlate to customer churn are identified, a model will be constructed to predict churn based on those featres. 
 
 #### Data Overview 
 * The telco dataset consists of 21 columns and 7,043 rows. 
@@ -69,7 +63,7 @@ glimpse(telco)
 ```
 
 
-### Exploring Demographic Data {#A2} 
+## Exploring Demographic Data {#A2} 
 * [Partners](#B1)
 * [Gender](#B2)
 * [Senior Citizen](#B3)
@@ -124,7 +118,7 @@ plawt(telco$Dependents) + scale_x_discrete("Has Dependents")
 prop.table(table(telco$Dependents, telco$Churn),1)
 ```
 
-### Exploring Adoption Data {#A3} 
+## Exploring Adoption Data {#A3} 
 * [Phone Service](#C1)
 * [Multiple Lines](#C2)
 * [Internet Service](#C3)
@@ -209,13 +203,69 @@ prop.table(table(telco$StreamingMovies, telco$Churn),1)
 
 ```
 
+## Esploring Paymenr Data {#A4}
+* [Payment Method and Contract](#F1)
+* [Histogram](#F2)
 
-### Tidying Data {#A4} 
+
+#### Payment Method and Contract{#F1}
+* Plotting Payment Variables
+
+``` {r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+
+#Plotting payment and contract variables
+payment_plot <- ggplot(telco,aes(x=PaymentMethod,fill=Churn))+
+  geom_bar(position="Fill")+
+  facet_grid(.~ Contract)+ 
+  theme(axis.text = element_text(angle = 90, hjust=1))+
+  scale_fill_manual(values = val)
+
+payment_plot
+```
+
+#### Histogram {#F2}
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+monthly_histo_plawt <- ggplot(telco, aes(x = MonthlyCharges,fill=Churn)) +
+  geom_histogram(binwidth=5,position="identity",alpha=0.5)+
+  scale_fill_manual("Churn", values = val)
+
+monthly_histo_plawt
+
+summary(telco$MonthlyCharges)
+
+monthlyfeedf <- telco[19:21]
+
+monthlyfeedf <- monthlyfeedf %>% mutate(monthly_quartiles = case_when(
+  MonthlyCharges <= 35.50 ~ "1st Quartile",
+  MonthlyCharges > 35.50  &  MonthlyCharges <= 70.35 ~ "2nd Quartile",
+  MonthlyCharges > 70.35  &  MonthlyCharges <= 89.85 ~ "3rd Quartile",
+  MonthlyCharges > 89.85  ~ "4th Quartile"
+))
+
+prop.table(table(monthlyfeedf$monthly_quartiles, monthlyfeedf$Churn),1)
+
+
+pay_plawt <- ggplot(monthlyfeedf, aes(x = factor(monthly_quartiles), fill = factor(Churn))) +
+  geom_bar(position = "dodge") +
+  scale_y_continuous("Customers")+
+  scale_fill_manual("Churn", values = val)+
+  scale_x_discrete("Monthly Payment Amount")
+
+pay_plawt
+
+```
+
+
+## Tidying Data {#A5} 
 * [Dummy Variables Function](#D1)
 * [Creating Dummy Variables](#D2)
-* [Payment_Features Data Frame](#D3)
+* [Payment Features Data Frame](#D3)
 * [Demographic Features Data Frame](#D4)
-* [Adoption Features Data Frame](#D4)
+* [Prepping Adoption Variables](#D5)
+* [Adoption Features Data Frame](#D6)
 
 
 #### Dummy Variables Function {#D1} 
@@ -238,8 +288,6 @@ dumz <- function(x) {
   spread(x, var, fill = 0, sep = "_") %>% 
   select(21:last_col())
 }
-
-
 ```
 
 #### Creating Dummy Variables {#D2} 
@@ -255,18 +303,33 @@ contract_dummy <- dumz("Contract")
 * Combining Payment-related variables to create a Payment Features Data Frame
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #creates a dataframe comprising the churn column from the telco dataset
+monthlydf <- telco[19]
 churndf <- telco[21]
 # combing the contract_dummy and payment_dummy data frames. 
 payment_features <- payment_dummy %>% 
-  bind_cols(contract_dummy,churndf)
+  bind_cols(contract_dummy,monthlydf,churndf)
 
 glimpse(payment_features)
 ```
 
-#### Demographic Features Data Frame {D4}
+#### Demographic Features Data Frame {#D4}
 * Combining Demographic-related variables to create a Demographic Features Data Frame
 ```{r}
 demodf <- telco[2:5]
+
+demodf <- demodf %>% 
+    mutate(Partner  = case_when(
+      Partner   == "Yes" ~ 1,
+      Partner   == "No" ~ 0,
+      T ~ as.numeric(Partner)
+    ))
+
+demodf <- demodf %>% 
+    mutate(Dependents  = case_when(
+      Dependents  == "Yes" ~ 1,
+      Dependents  == "No" ~ 0,
+      T ~ as.numeric(Dependents)
+    ))
 
 demo_features <- demodf %>% 
   bind_cols(churndf)
@@ -274,25 +337,23 @@ demo_features <- demodf %>%
 glimpse(demo_features)
 ```
 
-#### Prepping Adoption Variables {D5}
+#### Prepping Adoption Variables {#D5}
 
-```{r}
-glimpse(telco)
-glimpse(telco[7:15])
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
 
 adoptiondf <- telco %>% 
   select(7:8,10:15)
 
-
 adoptiondf <- na_if(adoptiondf, "No internet service")
 adoptiondf <- na_if(adoptiondf, "No phone service")
+
 adoptiondf <- adoptiondf %>% 
     mutate(PhoneService = case_when(
       PhoneService  == "Yes" ~ 1,
       PhoneService  == "No" ~ 0,
       T ~ as.numeric(PhoneService )
     ))
-
 
 adoptiondf <- adoptiondf %>% 
     mutate(MultipleLines   = case_when(
@@ -343,32 +404,30 @@ adoptiondf <- adoptiondf %>%
       T ~ as.numeric(StreamingMovies)
     ))
 
-Internet_dummy <- dumz("InternetService")
-glimpse(Internet_dummy)
 
-glimpse(telco$InternetService)
+
+Internet_dummy <- dumz("InternetService")
 
 ```
 
 
-#### Adoption Features Data Frame {D6}
+#### Adoption Features Data Frame {#D6}
 * Combining variables related to product adoption to create an Adoption Features Data Frame
 
 ```{r}
 adoption_features <- adoptiondf %>% 
   bind_cols(Internet_dummy,churndf)
 
+glimpse(adoption_features)
 ```
 
 
 
 
-
-
-
-### Correlation Analysis {#A5}
+## Correlation Analysis {#A6}
 * [Payment Features Correlation](#E1)
 * [Demographics Features Correlation](#E2)
+* [Adoption Correlation](#E2)
 
 #### Payment Features Correlation {#E1}
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -455,7 +514,7 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
     
 }
 
-# Plots the telco1 data drame with the get_cor function
+# Plots the telco data drame with the get_cor function
 payment_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
@@ -549,14 +608,14 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
     
 }
 
-# Plots the telco1 data drame with the get_cor function
+# Plots the data drame with the get_cor function
 demo_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
 
 
 
-
+#### Adoption Correlation {#E3}
 ```{r}
 
 # Correlation Matrix code snippet provided
@@ -641,23 +700,56 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
     
 }
 
-# Plots the telco1 data drame with the get_cor function
+# Plots the data drame with the get_cor function
 adoption_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
 
-### Fun with Plots {#A6}
-* Plotting Payment Variables
+## Training Dataset {#A7}
+* [Creating Features Dataset](#G1)
+* [Splitting Dataset for Testing](#G2)
 
-``` {r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#### Splitting Dataset for Testing{#G1}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+churn_winner <- churndf %>% 
+    mutate(Churn = ifelse(Churn=="Yes", 1, 0))
+demographics_winners <- demo_features[3:4]
+adoption_winners <- adoption_features[10]
+payment_winners <- payment_features[3]
+
+features_data <- demographics_winners %>% 
+  bind_cols(adoption_winners,payment_winners,monthlydf,churn_winner)
+
+names(features_data)[3] <- "Fiber_Optic"
+names(features_data)[4] <- "Electronic_Check"
+
+```
+
+#### Splitting Dataset for Testing{#G2}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#The createDataPartition() function that comes with the caret package can be used to split the data. 
+library(caret)
+
+inTrain <- createDataPartition(y= features_data$Churn, p=0.8, list=FALSE)
+
+training <- features_data[inTrain, ]
+
+test <- features_data[-inTrain, ]
+
+#p is set to 0.7 because we need 70% of the whole data and list is set to FALSE because we don't want the function to return inTrain as a list.
+
+```
 
 
-#Plotting payment and contract variables
-payment_plot <- ggplot(telco,aes(x=PaymentMethod,fill=Churn))+
-  geom_bar(position="Fill")+
-  facet_grid(.~ Contract)+ 
-  theme(axis.text = element_text(angle = 90, hjust=1))+
-  scale_fill_manual(values = val)
+## Logistic Regression {#A8}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#logistic regression
+glm.training <- glm(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, family = binomial)
 
-payment_plot
+summary(glm.training)
+
+glm.probs <- predict(glm.training,type = "response")
+
+glm.probs[1:5]
+
 ```
