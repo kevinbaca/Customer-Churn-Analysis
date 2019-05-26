@@ -203,10 +203,9 @@ prop.table(table(telco$StreamingMovies, telco$Churn),1)
 
 ```
 
-## Esploring Paymenr Data {#A4}
+## Exploring Payment Data {#A4}
 * [Payment Method and Contract](#F1)
 * [Histogram](#F2)
-
 
 #### Payment Method and Contract{#F1}
 * Plotting Payment Variables
@@ -255,6 +254,11 @@ pay_plawt <- ggplot(monthlyfeedf, aes(x = factor(monthly_quartiles), fill = fact
   scale_x_discrete("Monthly Payment Amount")
 
 pay_plawt
+
+telco %>% replace(is.na(.), 0) %>%
+   summarise(sum(TotalCharges))
+
+summary(monthlyfeedf$TotalCharges)
 
 ```
 
@@ -335,6 +339,7 @@ demo_features <- demodf %>%
   bind_cols(churndf)
 
 glimpse(demo_features)
+
 ```
 
 #### Prepping Adoption Variables {#D5}
@@ -736,8 +741,6 @@ training <- features_data[inTrain, ]
 
 test <- features_data[-inTrain, ]
 
-#p is set to 0.7 because we need 70% of the whole data and list is set to FALSE because we don't want the function to return inTrain as a list.
-
 ```
 
 
@@ -746,10 +749,36 @@ test <- features_data[-inTrain, ]
 #logistic regression
 glm.training <- glm(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, family = binomial)
 
+glm.test <- glm(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = test, family = binomial)
+
 summary(glm.training)
+summary(glm.test)
 
 glm.probs <- predict(glm.training,type = "response")
 
 glm.probs[1:5]
+
+ggplot(training, aes(x=MonthlyCharges, y=Churn)) + geom_point() + 
+  stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE)
+
+
+ggplot(training, aes(x=Fiber_Optic, y=Churn)) + geom_point() + 
+  stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE)
+
+```
+
+
+```{r}
+library(rpart)
+
+fit <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, method="class")
+
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+fancyRpartPlot(fit, sub="")
+
+Prediction <- predict(fit, test, type = "class")
 
 ```
