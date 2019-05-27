@@ -220,6 +220,7 @@ prop.table(table(telco$StreamingMovies, telco$Churn),1)
 ## Exploring Payment Data {#A4}
 * [Payment Method and Contract](#F1)
 * [Monthly Charges Histogram](#F2)
+* [Customer Tenure](#F3)
 * [Index](#X1)
 
 #### Payment Method and Contract{#F1}
@@ -280,7 +281,7 @@ summary(monthlyfeedf$TotalCharges)
 [top](#A4)
 
 #### Customer Tenure {#F3}
-```{r}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
 tenuredf <- telco[6]
 
@@ -305,6 +306,15 @@ tenure_plawt <- ggplot(tenuredf, aes(x = factor(cohort), fill = factor(Churn))) 
 prop.table(table(tenuredf$cohort, tenuredf$Churn),1)
 
 tenure_plawt
+
+
+
+year_1df <- tenuredf %>% 
+  mutate(Year1 = ifelse(cohort=="Year 1",1,0)) %>% 
+  select(Year1)
+
+year_1df <- year_1df[1]
+  
 
 ```
 [top](#A4)
@@ -800,20 +810,28 @@ test <- features_data[-inTrain, ]
 
 ## Decision Tree {#A8}
 * [Index](#X1)
+
 ```{r}
+
+tree_data <- features_data %>% 
+  bind_cols(year_1df)
+
+glimpse(tree_data)
+
 library(rpart)
 
-fit <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, method="class")
+fit1 <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Year1 + Electronic_Check + MonthlyCharges, data = tree_data, method="class")
 
 library(rattle)
 library(rpart.plot)
 library(RColorBrewer)
 
-fancyRpartPlot(fit, sub="")
+fancyRpartPlot(fit1, sub="")
 
-Prediction <- predict(fit, test, type = "class")
+Prediction <- predict(fit1, tree_data, type = "class")
 
 ```
+
 [top](#A8)
 
 ## Logistic Regression {#A9}
@@ -840,4 +858,4 @@ ggplot(training, aes(x=Fiber_Optic, y=Churn)) + geom_point() +
   stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE)
 
 ```
-[top](#A9)
+[top](#A9
