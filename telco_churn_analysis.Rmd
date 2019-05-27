@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telco-Customer-Churn data set.  
  
 
-## Index
+## Index {#X1}
 * [Project Overview](#A1)
 * [Exploring Demographic Data](#A2)
 * [Exploring Adoption Data](#A3)
@@ -28,7 +28,8 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
 * [Tidying Data](#A5)
 * [Correlation Matrix](#A6)
 * [Training Dataset](#A7)
-* [Logistic Regression](#A8)
+* [Decision Tree](#A8)
+* [Logistic Regression](#A9)
 
 
 ## Project Overview {#A1} 
@@ -68,11 +69,12 @@ glimpse(telco)
 * [Gender](#B2)
 * [Senior Citizen](#B3)
 * [Dependents](#B4)
+* [Index](#X1)
 
 #### Cusomers with Partners {#B1} 
 * Non-partnered customers churn at a 32% rate
 * Partnered customers churn as a 20% rate
-
+* [Index](#X1)
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 # Color values so churn is denoted as red
 val = c("#49beb7","#e16262")
@@ -89,7 +91,7 @@ plawt <- function(A) {
 plawt(telco$Partner) + scale_x_discrete("Has Partner")
 prop.table(table(telco$Partner, telco$Churn),1)
 ```
-
+[top](#A2)
 
 #### Customer Gender {#B2} 
 * Gender proportion is split evenly
@@ -100,6 +102,7 @@ plawt(telco$gender) + scale_x_discrete("Gender")
 prop.table(table(telco$gender, telco$Churn),1)
 
 ```
+[top](#A2)
 
 #### Senior Citizens {#B3} 
 * Senior Citizens are approximately twice as likely to churn
@@ -109,6 +112,7 @@ prop.table(table(telco$gender, telco$Churn),1)
 plawt(telco$SeniorCitizen) + scale_x_discrete("Senior Citizen")
 prop.table(table(telco$SeniorCitizen, telco$Churn),1)
 ```
+[top](#A2)
 
 #### Customers with Dependents {#B4} 
 * Customers with no dependents churn at twice the rate of those without
@@ -117,6 +121,7 @@ prop.table(table(telco$SeniorCitizen, telco$Churn),1)
 plawt(telco$Dependents) + scale_x_discrete("Has Dependents")
 prop.table(table(telco$Dependents, telco$Churn),1)
 ```
+[top](#A2)
 
 ## Exploring Adoption Data {#A3} 
 * [Phone Service](#C1)
@@ -128,6 +133,7 @@ prop.table(table(telco$Dependents, telco$Churn),1)
 * [Tech Support](#C7)
 * [Steaming TV](#C8)
 * [Streaming Movies](#C9)
+* [Index](#X1)
 
 #### Has Phone Service {#C1} 
 * The churn rate is higher among users without phone service, but overall, the subset of users without a phone is relatively small
@@ -136,6 +142,7 @@ prop.table(table(telco$Dependents, telco$Churn),1)
 plawt(telco$PhoneService) + scale_x_discrete("Has Phone Service")
 prop.table(table(telco$PhoneService, telco$Churn),1)
 ```
+[top](#A3)
 
 ####  Has Multiple Lines {#C2} 
 * Users with multiple lines to churn at a higher rate than users without multiple lines
@@ -144,6 +151,7 @@ prop.table(table(telco$PhoneService, telco$Churn),1)
 plawt(telco$MultipleLines) + scale_x_discrete("Has Multiple lines")
 prop.table(table(telco$MultipleLines, telco$Churn),1)
 ```
+[top](#A3)
 
 #### Internet Service {#C3} 
 * Fiber Optic Subscribers Churn at a ~42% rate compared with 19% for DSL
@@ -152,6 +160,7 @@ prop.table(table(telco$MultipleLines, telco$Churn),1)
 plawt(telco$InternetService) + scale_x_discrete("Internet Service Type")
 prop.table(table(telco$InternetService, telco$Churn),1)
 ```
+[top](#A3)
 
 #### Online Security {#C4} 
 * Subsribers without Online Security churn at a ~42% rate compared with users with online security who churn at an ~15% rate. 
@@ -160,6 +169,7 @@ prop.table(table(telco$InternetService, telco$Churn),1)
 plawt(telco$OnlineSecurity) + scale_x_discrete("Online Security")
 prop.table(table(telco$OnlineSecurity, telco$Churn),1)
 ```
+[top](#A3)
 
 #### Online Backup {#C5} 
 * Subsribers without Online Backup churn at a ~40% rate compared with users with online security who churn at an ~21% rate. 
@@ -168,7 +178,7 @@ prop.table(table(telco$OnlineSecurity, telco$Churn),1)
 plawt(telco$OnlineBackup) + scale_x_discrete("Online Backup")
 prop.table(table(telco$OnlineBackup, telco$Churn),1)
 ```
-
+[top](#A3)
 
 #### Device Protection {#C6} 
 * Customers without Device Protection Churn at a 39% Rate compared with a 22% rate for customers with Device Protection
@@ -178,6 +188,7 @@ plawt(telco$DeviceProtection) + scale_x_discrete("Device Protection")
 prop.table(table(telco$DeviceProtection, telco$Churn),1)
 
 ```
+[top](#A3)
 
 #### Tech Support {#C7} 
 * Customers with Tech Support churned at a 15% rate compared with 42% for customers without Tech Support (Whatever this means)
@@ -186,6 +197,7 @@ prop.table(table(telco$DeviceProtection, telco$Churn),1)
 plawt(telco$TechSupport) + scale_x_discrete("Tech Support")
 prop.table(table(telco$TechSupport, telco$Churn),1)
 ```
+[top](#A3)
 
 #### Streaming TV {#C8} 
 * There is not a meaningful difference in churn rate
@@ -194,6 +206,7 @@ plawt(telco$StreamingTV) + scale_x_discrete("Streaming TV")
 prop.table(table(telco$StreamingTV, telco$Churn),1)
 
 ```
+[top](#A3)
 
 #### Streaming Movies {#C9} 
 * There is not a meaningful difference in churn rate
@@ -202,10 +215,12 @@ plawt(telco$StreamingMovies) + scale_x_discrete("Streaming Movies")
 prop.table(table(telco$StreamingMovies, telco$Churn),1)
 
 ```
+[top](#A3)
 
 ## Exploring Payment Data {#A4}
 * [Payment Method and Contract](#F1)
-* [Histogram](#F2)
+* [Monthly Charges Histogram](#F2)
+* [Index](#X1)
 
 #### Payment Method and Contract{#F1}
 * Plotting Payment Variables
@@ -222,8 +237,9 @@ payment_plot <- ggplot(telco,aes(x=PaymentMethod,fill=Churn))+
 
 payment_plot
 ```
+[top](#A4)
 
-#### Histogram {#F2}
+#### Monthly Charges Histogram {#F2}
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 
@@ -261,7 +277,37 @@ telco %>% replace(is.na(.), 0) %>%
 summary(monthlyfeedf$TotalCharges)
 
 ```
+[top](#A4)
 
+#### Customer Tenure {#F3}
+```{r}
+
+tenuredf <- telco[6]
+
+tenuredf <- tenuredf %>% 
+  bind_cols(monthlyfeedf)
+
+tenuredf <- tenuredf %>% mutate(cohort= case_when(
+  tenure <= 12~ "Year 1",
+  tenure > 12 & tenure <= 24 ~ "Year 2",
+  tenure > 24 & tenure <= 36 ~ "Year 3",
+  tenure > 36 & tenure <= 48 ~ "Year 4",
+  tenure > 48 & tenure <= 60 ~ "Year 5",
+  tenure > 60 ~ "Year 6 & Beyond"
+))
+
+tenure_plawt <- ggplot(tenuredf, aes(x = factor(cohort), fill = factor(Churn))) +
+  geom_bar(position = "dodge") +
+  scale_y_continuous("Customers")+
+  scale_fill_manual("Churn", values = val)+
+  scale_x_discrete("Tenure") 
+
+prop.table(table(tenuredf$cohort, tenuredf$Churn),1)
+
+tenure_plawt
+
+```
+[top](#A4)
 
 ## Tidying Data {#A5} 
 * [Dummy Variables Function](#D1)
@@ -270,6 +316,7 @@ summary(monthlyfeedf$TotalCharges)
 * [Demographic Features Data Frame](#D4)
 * [Prepping Adoption Variables](#D5)
 * [Adoption Features Data Frame](#D6)
+* [Index](#X1)
 
 
 #### Dummy Variables Function {#D1} 
@@ -293,6 +340,7 @@ dumz <- function(x) {
   select(21:last_col())
 }
 ```
+[top](#A5)
 
 #### Creating Dummy Variables {#D2} 
 * Converting PaymentMethod and Contract Elements into Dummy Variables
@@ -302,6 +350,7 @@ payment_dummy <- dumz("PaymentMethod")
 #applying the dummiez function on the `Contract` column
 contract_dummy <- dumz("Contract")
 ```
+[top](#A5)
 
 #### Payment Features Data Frame {#D3} 
 * Combining Payment-related variables to create a Payment Features Data Frame
@@ -315,6 +364,7 @@ payment_features <- payment_dummy %>%
 
 glimpse(payment_features)
 ```
+[top](#A5)
 
 #### Demographic Features Data Frame {#D4}
 * Combining Demographic-related variables to create a Demographic Features Data Frame
@@ -341,6 +391,7 @@ demo_features <- demodf %>%
 glimpse(demo_features)
 
 ```
+[top](#A5)
 
 #### Prepping Adoption Variables {#D5}
 
@@ -414,7 +465,7 @@ adoptiondf <- adoptiondf %>%
 Internet_dummy <- dumz("InternetService")
 
 ```
-
+[top](#A5)
 
 #### Adoption Features Data Frame {#D6}
 * Combining variables related to product adoption to create an Adoption Features Data Frame
@@ -425,7 +476,7 @@ adoption_features <- adoptiondf %>%
 
 glimpse(adoption_features)
 ```
-
+[top](#A5)
 
 
 
@@ -433,6 +484,7 @@ glimpse(adoption_features)
 * [Payment Features Correlation](#E1)
 * [Demographics Features Correlation](#E2)
 * [Adoption Correlation](#E2)
+* [Index](#X1)
 
 #### Payment Features Correlation {#E1}
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -523,7 +575,7 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
 payment_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
-
+[top](#A6)
 
 #### Demographics Correlation {#E2}
 * correlation table and plot for Demographic Data
@@ -617,7 +669,7 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
 demo_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
-
+[top](#A6)
 
 
 #### Adoption Correlation {#E3}
@@ -709,10 +761,12 @@ plot_cor <- function(data, target, fct_reorder = FALSE, fct_rev = FALSE,
 adoption_features %>%
     plot_cor(target = Churn, fct_reorder = T, fct_rev = F)
 ```
+[top](#A6)
 
 ## Training Dataset {#A7}
 * [Creating Features Dataset](#G1)
 * [Splitting Dataset for Testing](#G2)
+* [Index](#X1)
 
 #### Splitting Dataset for Testing{#G1}
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
@@ -742,9 +796,29 @@ training <- features_data[inTrain, ]
 test <- features_data[-inTrain, ]
 
 ```
+[top](#A7)
 
+## Decision Tree {#A8}
+* [Index](#X1)
+```{r}
+library(rpart)
 
-## Logistic Regression {#A8}
+fit <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, method="class")
+
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+fancyRpartPlot(fit, sub="")
+
+Prediction <- predict(fit, test, type = "class")
+
+```
+[top](#A8)
+
+## Logistic Regression {#A9}
+* [Index](#X1)
+
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
 #logistic regression
 glm.training <- glm(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, family = binomial)
@@ -766,19 +840,4 @@ ggplot(training, aes(x=Fiber_Optic, y=Churn)) + geom_point() +
   stat_smooth(method="glm", method.args=list(family="binomial"), se=FALSE)
 
 ```
-
-
-```{r}
-library(rpart)
-
-fit <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, method="class")
-
-library(rattle)
-library(rpart.plot)
-library(RColorBrewer)
-
-fancyRpartPlot(fit, sub="")
-
-Prediction <- predict(fit, test, type = "class")
-
-```
+[top](#A9)
