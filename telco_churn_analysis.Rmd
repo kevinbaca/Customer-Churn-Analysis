@@ -971,15 +971,15 @@ logit2prob <- function(logit){
   return(prob)
 }
 
+fiber.fit <- glm(Churn ~ Fiber_Optic, data = training, family = binomial)
+summary(fiber.fit)
+
 logit2prob(coef(fiber.fit))
 intercept <- coef(fiber.fit)[1]
 fiber_churn <- coef(fiber.fit)[2]
 logits_survival <- intercept + 1 * fiber_churn
 pewp <- logit2prob(logits_survival)
 pewp
-
-fiber.fit <- glm(Churn ~ Fiber_Optic, data = training, family = binomial)
-summary(fiber.fit)
 
 predict(fiber.fit, newdata=data.frame(Fiber_Optic=1), type="response")
 
