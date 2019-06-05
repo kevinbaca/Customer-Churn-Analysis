@@ -27,8 +27,8 @@ Exploration, Tidying, Plotting and Modeling based on the public WA_Fn-UseC_-Telc
 * [Exploring Payment Data](#A4)
 * [Tidying Data](#A5)
 * [Correlation Matrix](#A6)
-* [Training Dataset](#A7)
-* [Decision Tree](#A8)
+* [Decision Tree](#A7)
+* [Training Dataset](#A8)
 * [Logistic Regression](#A9)
 
 
@@ -364,7 +364,7 @@ tenure_plawt <- ggplot(tenure_churn, aes(x = factor(cohort), fill = factor(Churn
 [top](#A4)
 
 #### Customer Tenure Plot {#F7}
-* First year cancellations account for more than ~55% all customer Churn. 
+* First year cancellations account for more than 55% all customer Churn. 
 ```{r}
 tenure_plawt
 
@@ -841,44 +841,31 @@ adoption_features %>%
 
 ## Training Dataset {#A7}
 * [Creating Features Dataset](#G1)
-* [Splitting Dataset for Testing](#G2)
 * [Index](#X1)
 
 #### Splitting Dataset for Testing{#G1}
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#Creating 4 datasets with the most highly-correlated features and one for the target variable - churn -- to be combined below into a training dataset
 churn_winner <- churndf %>% 
     mutate(Churn = ifelse(Churn=="Yes", 1, 0))
 demographics_winners <- demo_features[3:4]
 adoption_winners <- adoption_features[10]
 payment_winners <- payment_features[3]
 
+#Combining all of the crazy sub datasets that I explored above into one dataset
 features_data <- demographics_winners %>% 
   bind_cols(adoption_winners,payment_winners,monthlydf,churn_winner)
 
+# I have to change the column or variable names for these two columns that were created via the spread function. 
 names(features_data)[3] <- "Fiber_Optic"
 names(features_data)[4] <- "Electronic_Check"
 
 ```
 
-[top](#A7)
 
-#### Splitting Dataset for Testing{#G2}
-```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-#The createDataPartition() function that comes with the caret package can be used to split the data. 
-library(caret)
-
-inTrain <- createDataPartition(y= features_data$Churn, p=0.8, list=FALSE)
-
-training <- features_data[inTrain, ]
-
-test <- features_data[-inTrain, ]
-
-```
-
-[top](#A7)
-
-## Decision Tree {#A8}
+## Decision Tree {#A7}
 * [Decision Tree](#I1)
+* [Changing Features Data](#I2)
 * [Index](#X1)
 
 #### Decision Tree {#I1}
@@ -905,33 +892,96 @@ fit1 <- rpart(Churn ~ Partner + Dependents + Fiber_Optic + Electronic_Check + Mo
 # this function makes the decision tree attractive. The sub argument is used to remove a default label on the x axis. 
 fancyRpartPlot(fit1, sub="")
 
-
+#applying the fit1 decision tree model to the features_data set to determine if there are any variables that should be removed before creating a logit model. 
 Prediction <- predict(fit1, features_data, type = "class")
+```
 
-Prediction[1:5]
+[top](#A7)
+
+#### Changing Features Data {#I2}
+* Based on the results of our Decision Tree, Dependents are not deemed to have enough predictve Power, so they are removed from the features_data data set
+
+```{r}
+
+features_data <- features_data %>%
+  select(1,3,4,5,6)
+features_data$Churn <- factor(features_data$Churn)
+glimpse(features_data)
+```
+
+[top](#A7)
+
+## Splitting Dataset for Testing {#A8}
+* [Splitting Dataset for Testing](#J2)
+* [Index](#X1)
+
+####Splitting Dataset for Testing{#J2}
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+#The createDataPartition() function that comes with the caret package can be used to split the data. 
+library(caret)
+#Here I am creating an object that is 80% of the features_data dataset 
+inTrain <- createDataPartition(y= features_data$Churn, p=0.8, list=FALSE)
+
+#Here I am creating training dataset witht he inTrain object being the subest of the features-data dataset on which we want to fit our model
+training <- features_data[inTrain, ]
+
+#Here I am creating test dataset, which is 20% of the features_data dataset
+test <- features_data[-inTrain, ]
+
 ```
 
 [top](#A8)
 
 ## Logistic Regression {#A9}
+* [Fitting the Model]{#k1}
 * [Index](#X1)
 
 ```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
-#logistic regression
+#logistic regression Fitting the Model on Training DataSet
 glm.training <- glm(Churn ~ Partner + Fiber_Optic + Electronic_Check + MonthlyCharges, data = training, family = binomial)
-
-glm.probs <- predict(glm.training,type = "response")
-
-glm.test <- glm(Churn ~ Partner + Fiber_Optic + Electronic_Check + MonthlyCharges, data = test, family = binomial)
-
-library(jtools)
-library(kableExtra)
-library(huxtable)
-
-export_summs(glm.training, glm.test)
+summary(glm.training)
 
 
+# applying modelt to test data set. creating an object `p` which is the predict function applying the glm.training model to the test dataset. The output is a probability from 0 to 1. 
+Predictarino <- predict(glm.training,test,type = "response")
 
+summary(Predictarino)
+
+#Predicting Churn outcome by applying a threshold of 0.5. If the probability is above, it is a churn. 
+churnono <- ifelse(Predictarino  > 0.5, 1, 0)
+
+table(churnono)
+
+
+p_churn <- factor(churnono, levels = levels(test[["Churn"]]))
+
+#using caret's helper fuction to 
+confusionMatrix(p_churn,test[["Churn"]])
+```
+
+[top](#A8)
+
+```{r}
+# custom function to turn logits into probabilities
+# converting logistic regression cofeffciients (called logits) to probabilities. Note, the first step in this function exponentiates the logits to turn them into odds, then they are converted to probs -- whuch is just p = odds/1-odds
+
+logit2prob <- function(logit){
+  odds <- exp(logit)
+  prob <- odds / (1 + odds)
+  return(prob)
+}
+
+logit2prob(coef(fiber.fit))
+intercept <- coef(fiber.fit)[1]
+fiber_churn <- coef(fiber.fit)[2]
+logits_survival <- intercept + 1 * fiber_churn
+pewp <- logit2prob(logits_survival)
+pewp
+
+fiber.fit <- glm(Churn ~ Fiber_Optic, data = training, family = binomial)
+summary(fiber.fit)
+
+predict(fiber.fit, newdata=data.frame(Fiber_Optic=1), type="response")
 
 ```
 
