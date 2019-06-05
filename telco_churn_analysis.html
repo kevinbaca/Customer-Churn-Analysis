@@ -804,6 +804,7 @@ test &lt;-<span class="st"> </span>features_data[<span class="op">-</span>inTrai
 <div id="A9" class="section level2">
 <h2>Logistic Regression</h2>
 <ul>
+<li><span id="k1">Fitting the Model</span></li>
 <li><a href="#X1">Index</a></li>
 </ul>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#logistic regression Fitting the Model on Training DataSet</span>
@@ -816,23 +817,23 @@ glm.training &lt;-<span class="st"> </span><span class="kw">glm</span>(Churn <sp
 ## 
 ## Deviance Residuals: 
 ##     Min       1Q   Median       3Q      Max  
-## -1.4865  -0.7117  -0.4834   0.9250   2.4647  
+## -1.4881  -0.6993  -0.4909   0.9218   2.4667  
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)      -1.305414   0.099822 -13.077  &lt; 2e-16 ***
-## Partner          -0.640349   0.068034  -9.412  &lt; 2e-16 ***
-## Fiber_Optic       1.734204   0.123882  13.999  &lt; 2e-16 ***
-## Electronic_Check  1.047839   0.068458  15.306  &lt; 2e-16 ***
-## MonthlyCharges   -0.011277   0.002067  -5.456 4.86e-08 ***
+## (Intercept)      -1.289972   0.099619 -12.949  &lt; 2e-16 ***
+## Partner          -0.676801   0.068305  -9.909  &lt; 2e-16 ***
+## Fiber_Optic       1.708954   0.124071  13.774  &lt; 2e-16 ***
+## Electronic_Check  1.049446   0.068707  15.274  &lt; 2e-16 ***
+## MonthlyCharges   -0.011105   0.002071  -5.361 8.28e-08 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
 ##     Null deviance: 6522.7  on 5635  degrees of freedom
-## Residual deviance: 5586.7  on 5631  degrees of freedom
-## AIC: 5596.7
+## Residual deviance: 5587.6  on 5631  degrees of freedom
+## AIC: 5597.6
 ## 
 ## Number of Fisher Scoring iterations: 4</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># applying modelt to test data set. creating an object `p` which is the predict function applying the glm.training model to the test dataset. The output is a probability from 0 to 1. </span>
@@ -840,14 +841,14 @@ Predictarino &lt;-<span class="st"> </span><span class="kw">predict</span>(glm.t
 
 <span class="kw">summary</span>(Predictarino)</code></pre></div>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## 0.04804 0.11038 0.19074 0.26057 0.38236 0.66974</code></pre>
+## 0.04785 0.11182 0.18822 0.25922 0.37612 0.66781</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Predicting Churn outcome by applying a threshold of 0.5. If the probability is above, it is a churn. </span>
 churnono &lt;-<span class="st"> </span><span class="kw">ifelse</span>(Predictarino  <span class="op">&gt;</span><span class="st"> </span><span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)
 
 <span class="kw">table</span>(churnono)</code></pre></div>
 <pre><code>## churnono
 ##    0    1 
-## 1223  184</code></pre>
+## 1226  181</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_churn &lt;-<span class="st"> </span><span class="kw">factor</span>(churnono, <span class="dt">levels =</span> <span class="kw">levels</span>(test[[<span class="st">&quot;Churn&quot;</span>]]))
 
 <span class="co">#using caret's helper fuction to </span>
@@ -856,29 +857,58 @@ churnono &lt;-<span class="st"> </span><span class="kw">ifelse</span>(Predictari
 ## 
 ##           Reference
 ## Prediction   0   1
-##          0 961 262
-##          1  73 111
-##                                           
-##                Accuracy : 0.7619          
-##                  95% CI : (0.7388, 0.7839)
-##     No Information Rate : 0.7349          
-##     P-Value [Acc &gt; NIR] : 0.01114         
-##                                           
-##                   Kappa : 0.2709          
-##                                           
-##  Mcnemar's Test P-Value : &lt; 2e-16         
-##                                           
-##             Sensitivity : 0.9294          
-##             Specificity : 0.2976          
-##          Pos Pred Value : 0.7858          
-##          Neg Pred Value : 0.6033          
-##              Prevalence : 0.7349          
-##          Detection Rate : 0.6830          
-##    Detection Prevalence : 0.8692          
-##       Balanced Accuracy : 0.6135          
-##                                           
-##        'Positive' Class : 0               
+##          0 962 264
+##          1  72 109
+##                                          
+##                Accuracy : 0.7612         
+##                  95% CI : (0.738, 0.7833)
+##     No Information Rate : 0.7349         
+##     P-Value [Acc &gt; NIR] : 0.01308        
+##                                          
+##                   Kappa : 0.2664         
+##                                          
+##  Mcnemar's Test P-Value : &lt; 2e-16        
+##                                          
+##             Sensitivity : 0.9304         
+##             Specificity : 0.2922         
+##          Pos Pred Value : 0.7847         
+##          Neg Pred Value : 0.6022         
+##              Prevalence : 0.7349         
+##          Detection Rate : 0.6837         
+##    Detection Prevalence : 0.8714         
+##       Balanced Accuracy : 0.6113         
+##                                          
+##        'Positive' Class : 0              
 ## </code></pre>
+<p><a href="#A8">top</a></p>
+<pre><code>## 
+## Call:
+## glm(formula = Churn ~ Fiber_Optic, family = binomial, data = training)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.0403  -1.0403  -0.5612   1.3210   1.9627  
+## 
+## Coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -1.76867    0.05044  -35.06   &lt;2e-16 ***
+## Fiber_Optic  1.43731    0.06483   22.17   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 6522.7  on 5635  degrees of freedom
+## Residual deviance: 5991.0  on 5634  degrees of freedom
+## AIC: 5995
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<pre><code>## (Intercept) Fiber_Optic 
+##    0.145708    0.808038</code></pre>
+<pre><code>## (Intercept) 
+##   0.4179104</code></pre>
+<pre><code>##         1 
+## 0.4179104</code></pre>
 <p><a href="#A9">top</a></p>
 </div>
 </section>
